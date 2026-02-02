@@ -1,40 +1,23 @@
-# Barbaarintasan Academy - Fly.io Configuration
-# Staging deployment: staging.appbarbaarintasan.com
+# fly.toml app configuration file generated for barbaarintasan-staging on 2026-02-02T19:42:46Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "barbaarintasan-staging"
-primary_region = "fra"
+app = 'barbaarintasan-staging'
+primary_region = 'sin'
 
 [build]
-  dockerfile = "Dockerfile"
-
-[env]
-  NODE_ENV = "production"
-  PORT = "8080"
-  STAGING = "true"
 
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = false
+  auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 1
-  processes = ["app"]
-
-  [http_service.concurrency]
-    type = "connections"
-    hard_limit = 100
-    soft_limit = 80
+  min_machines_running = 0
+  processes = ['app']
 
 [[vm]]
-  memory = "1gb"
-  cpu_kind = "shared"
+  memory = '1gb'
+  cpu_kind = 'shared'
   cpus = 1
-
-[checks]
-  [checks.health]
-    type = "http"
-    port = 8080
-    path = "/api/health"
-    interval = "30s"
-    timeout = "5s"
-    grace_period = "10s"
+  memory_mb = 1024
