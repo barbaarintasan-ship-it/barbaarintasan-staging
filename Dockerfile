@@ -18,6 +18,7 @@ RUN npm run build
 
 # Stage 2: Production
 FROM node:20-alpine AS production
+RUN apk add --no-cache ffmpeg
 
 WORKDIR /app
 
@@ -45,4 +46,3 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Start the application
 CMD ["node", "dist/index.js"]
-RUN apk add --no-cache ffmpeg
