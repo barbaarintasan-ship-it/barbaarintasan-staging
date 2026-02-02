@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+server/public/
+
+# Cache
+.cache/
+.upm/
+
+# Environment files (secrets)
+.env
+.env.local
+.env.production
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+*.tar.gz
+*.zip
+
+# Backup files
+barbaarintasan-*.zip
+barbaarintasan-part-*
+
+# Vite temp files
+vite.config.ts.*
+
+# Replit internal
+.local/
+
+# IDE
+.idea/
+.vscode/
