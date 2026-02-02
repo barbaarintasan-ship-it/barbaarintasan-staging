@@ -1,0 +1,95 @@
+Please implement the following EXACTLY. 
+Do NOT change project structure. 
+Do NOT modify the existing dailyContent logic.
+
+GOAL:
+Trigger the existing scheduled/dailyContent.ts script via an external cron job (cron-job.org) at 05:00 UTC daily.
+
+--------------------------------------------------
+STEP 1: Create API endpoint
+--------------------------------------------------
+
+Create a secure POST endpoint:
+
+POST /api/cron/daily-content
+
+Location:
+- Use existing server routing (server/routes.ts or equivalent)
+
+--------------------------------------------------
+STEP 2: Secret validation
+--------------------------------------------------
+
+Read secret from environment variable:
+
+DAILY_CRON_SECRET
+
+The request MUST include header:
+
+Authorization: Bearer <DAILY_CRON_SECRET>
+
+If missing or invalid:
+- Return HTTP 401
+- Do NOT execute anything
+
+--------------------------------------------------
+STEP 3: Execute existing script
+--------------------------------------------------
+
+Inside the endpoint handler:
+- Import the existing script:
+  scheduled/dailyContent.ts
+- Call the existing function that generates:
+  - Parent Message
+  - Bedtime Story
+
+IMPORTANT:
+- Do NOT rewrite or duplicate logic
+- Just call the existing function
+
+--------------------------------------------------
+STEP 4: Response & logging
+--------------------------------------------------
+
+On success:
+- Return HTTP 200
+- JSON: { success: true, message: "Daily content generated" }
+
+On failure:
+- Return HTTP 500
+- Log the error clearly
+
+--------------------------------------------------
+STEP 5: No Replit Scheduled Deployment
+--------------------------------------------------
+
+- Do NOT use Replit Scheduled Deployments
+- This endpoint will be triggered ONLY by external cron
+
+--------------------------------------------------
+STEP 6: Verification
+--------------------------------------------------
+
+After implementation:
+- Manually test endpoint using POST request
+- Confirm BOTH:
+  - Parent Message created
+  - Bedtime Story created
+
+--------------------------------------------------
+STEP 7: Deployment
+--------------------------------------------------
+
+- Publish to production
+- Confirm endpoint works in production environment
+
+--------------------------------------------------
+FINAL CONFIRMATION REQUIRED:
+--------------------------------------------------
+
+After completion, confirm ALL of the following in writing:
+
+1. Endpoint path
+2. Secret name used
+3. That dailyContent.ts was NOT modified
+4. That production test succeeded

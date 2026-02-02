@@ -1,0 +1,90 @@
+Sidee loo saxaa (Express ama Next.js)
+1️⃣ Express Example (Node.js)
+
+File structure:
+
+project/
+ ├─ api/
+ │   └─ cron/
+ │       └─ daily-content.ts
+ └─ server.ts
+
+
+server.ts:
+
+import express from "express";
+import dailyContentHandler from "./api/cron/daily-content";
+
+const app = express();
+
+app.use(express.json());
+
+// ✅ Add route
+app.post("/api/cron/daily-content", dailyContentHandler);
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
+
+
+api/cron/daily-content.ts:
+
+import { Request, Response } from "express";
+import { generateDailyContent } from "../../scheduled/dailyContent";
+
+export default async function handler(req: Request, res: Response) {
+  const auth = req.headers.authorization;
+  if (auth !== `Bearer ${process.env.DAILY_CRON_SECRET}`) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  res.status(200).json({ status: "accepted", message: "Daily content started" });
+
+  setImmediate(async () => {
+    try {
+      await generateDailyContent();
+      console.log("✅ Daily content generated");
+    } catch (err) {
+      console.error(err);
+    }
+  });
+}
+
+2️⃣ Next.js App Router Example
+
+File structure:
+
+app/
+ └─ api/
+    └─ cron/
+       └─ daily-content/
+          └─ route.ts
+
+
+route.ts:
+
+import { NextResponse } from "next/server";
+import { generateDailyContent } from "../../../../scheduled/dailyContent";
+
+export async function POST(request: Request) {
+  const auth = request.headers.get("authorization");
+  if (auth !== `Bearer ${process.env.DAILY_CRON_SECRET}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Respond immediately
+  const response = NextResponse.json({ status: "accepted", message: "Daily content started" });
+
+  // Background execution
+  setTimeout(async () => {
+    try {
+      await generateDailyContent();
+      console.log("✅ Daily content generated");
+    } catch (err) {
+      console.error(err);
+    }
+  }, 0);
+
+  return response;
+}

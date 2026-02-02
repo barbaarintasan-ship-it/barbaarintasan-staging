@@ -1,0 +1,171 @@
+Replit Agent – Implementation Instructions (ENGLISH)
+
+Context
+This app includes a Parent Community Feed (Facebook-like feed) where parents can post content. Because the app involves parents and children, strict legal compliance, moderation, and user consent are mandatory.
+
+1. Mandatory Terms & Conditions Gate (Before Feed Access)
+
+Requirement
+Create a dedicated “Parent Community Terms & Conditions” page that users MUST read and accept before accessing the Parent Feed.
+
+Behavior
+
+When a parent clicks “Parent Feed” for the first time:
+
+Redirect them to /parent-community-terms
+
+Display full Community Guidelines + Child Safety Rules
+
+The page must include:
+
+A scrollable Terms & Conditions text
+
+A required checkbox:
+“I have read and agree to the Parent Community Terms & Conditions”
+
+A disabled Continue button until the checkbox is checked
+
+Enforcement
+
+Save acceptance in the database (e.g. user.hasAcceptedCommunityTerms = true)
+
+If not accepted:
+
+Block all access to feed routes (read, post, comment)
+
+If accepted:
+
+Allow access to Parent Feed
+
+Acceptance must persist across sessions and devices
+
+2. Google Play & App Store Compliance (CRITICAL)
+
+Legal & Policy Requirements
+Ensure the implementation explicitly satisfies:
+
+Google Play Developer Policy (User Generated Content)
+
+Apple App Store Review Guidelines
+
+EU GDPR & child protection regulations
+
+Mandatory Features
+
+Visible Community Guidelines page (publicly accessible)
+
+Clear statement:
+
+“Content is moderated”
+
+“Child abuse and exploitation are strictly prohibited”
+
+In-feed:
+
+Report Post button on every post
+
+Block User option
+
+Moderation system:
+
+Admin ability to:
+
+Remove posts
+
+Suspend or ban users
+
+Privacy protection:
+
+No sharing of children’s personal data
+
+Immediate removal of harmful content
+
+Important
+Acceptance of Terms must be referenced in:
+
+Privacy Policy
+
+Terms of Service
+
+App Store & Google Play review notes
+
+3. Community Feed Rules Enforcement (Technical)
+
+Posting Rules
+Before allowing a post to be published:
+
+Validate content (text + media)
+
+Reject or flag:
+
+Sexual content
+
+Violence
+
+Hate speech
+
+Child exploitation
+
+Spam / ads
+
+Optional:
+
+Keyword filtering
+
+AI moderation flag (soft review)
+
+Reporting System
+
+Each post must have:
+
+“Report” button
+
+Reports saved with:
+
+Post ID
+
+Reporter ID
+
+Reason
+
+Timestamp
+
+Audit & Logs
+
+Maintain moderation logs for:
+
+Google Play / App Store review
+
+Legal compliance proof
+
+4. UX Copy (Must Be Clear)
+
+Use clear language such as:
+
+“This community is for parents only”
+
+“Posting harmful or illegal content will result in account termination”
+
+“Serious violations may be reported to authorities”
+
+5. Deliverables Expected from Agent
+
+Terms & Conditions page (Parent Community specific)
+
+Database flag for acceptance
+
+Route protection middleware
+
+Report & moderation system
+
+Compliance-ready structure for store review
+
+Talo Muhiim ah (Adiga)
+
+Marka Replit Agent tan hirgeliyo:
+
+Google Play aad bay u fududaanaysaa approval-ka
+
+App Store ma diidi karto haddii moderation + consent jiraan
+
+Mas’uuliyadda sharciga adiga waa kaa yaraataa
