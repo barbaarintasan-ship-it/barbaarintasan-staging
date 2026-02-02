@@ -1,0 +1,534 @@
+Deployment
+
+Failed
+less than a minute agoFeb 2, 2026 18:00 UTC (took 97s)
+
+Navigation
+Initial-commit
+
+2ba19b9 on 2ba19b97cf5cfb8eee818b9de08aee793f87863d by barbaarintasan-ship-it
+
+Start deployer machine
+Setup and pull from git repository
+Prepare deployment plan
+Customize deployment plan
+Install required dependencies
+Generate requirements for build
+Build image
+ 
+flyctl deploy --build-only --push -a barbaarintasan-staging-y8fvaq --image-label deployment-910768dfd9a3bbcc0d3decb30bbccd7a --config fly.toml
+
+==> Verifying app config
+
+Validating fly.toml
+
+✓ Configuration is valid
+
+--> Verified app config
+
+==> Building image
+
+Waiting for depot builder...
+
+
+==> Building image with Depot
+
+--> build: (​)
+
+#1 [internal] load build definition from Dockerfile
+
+#1 transferring dockerfile: 1.09kB done
+
+#1 DONE 0.0s
+
+
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+
+#2 DONE 2.8s
+
+
+#3 [internal] load .dockerignore
+
+#3 transferring context: 2B done
+
+#3 DONE 0.0s
+
+
+#4 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8
+
+#4 resolve docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8 done
+
+#4 DONE 0.0s
+
+
+#5 [internal] load build context
+
+#5 transferring context: 30.89MB 0.5s done
+
+#5 DONE 0.6s
+
+
+#4 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8
+
+#4 sha256:e31b2016552274339ed88ed4a438d78bf37e0f6bdf328d02207b2a598c1ef86d 445B / 445B done
+
+#4 sha256:eb87f4721c91769ed5206f34a9ab6ec98fc1d5235c12c2fc956665b1155e9ecb 1.26MB / 1.26MB 0.1s done
+
+#4 sha256:ad6d96c196e3198e14ea37df8bba4f54bf92fb525eb65e49fa4027c7dee13f80 29.36MB / 42.78MB 0.3s
+
+#4 sha256:589002ba0eaed121a1dbf42f6648f29e5be55d5c8a6ee0f8eaa0285cc21ac153 3.86MB / 3.86MB 0.2s done
+
+#4 extracting sha256:589002ba0eaed121a1dbf42f6648f29e5be55d5c8a6ee0f8eaa0285cc21ac153 0.2s done
+
+#4 sha256:ad6d96c196e3198e14ea37df8bba4f54bf92fb525eb65e49fa4027c7dee13f80 42.78MB / 42.78MB 0.5s done
+
+#4 extracting sha256:ad6d96c196e3198e14ea37df8bba4f54bf92fb525eb65e49fa4027c7dee13f80
+
+#4 extracting sha256:ad6d96c196e3198e14ea37df8bba4f54bf92fb525eb65e49fa4027c7dee13f80 1.3s done
+
+#4 DONE 1.8s
+
+
+#4 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8
+
+#4 extracting sha256:eb87f4721c91769ed5206f34a9ab6ec98fc1d5235c12c2fc956665b1155e9ecb 0.0s done
+
+#4 extracting sha256:e31b2016552274339ed88ed4a438d78bf37e0f6bdf328d02207b2a598c1ef86d done
+
+#4 DONE 1.8s
+
+
+#6 [builder 2/6] WORKDIR /app
+
+#6 DONE 2.0s
+
+
+#7 [builder 3/6] COPY package*.json ./
+
+#7 DONE 0.0s
+
+
+#8 [production 4/6] RUN npm ci --omit=dev
+
+#8 4.828 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+#8 ...
+
+
+#9 [builder 4/6] RUN npm ci
+
+#9 4.824 npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+#9 6.645 npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+
+#9 6.693 npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+
+#9 ...
+
+
+#8 [production 4/6] RUN npm ci --omit=dev
+
+#8 19.26
+
+#8 19.26 added 712 packages, and audited 713 packages in 19s
+
+#8 19.26
+
+#8 19.26 86 packages are looking for funding
+
+#8 19.26 run `npm fund` for details
+
+#8 19.32
+
+#8 19.32 21 vulnerabilities (1 moderate, 20 high)
+
+#8 19.32
+
+#8 19.32 To address issues that do not require attention, run:
+
+#8 19.32 npm audit fix
+
+#8 19.32
+
+#8 19.32 To address all issues (including breaking changes), run:
+
+#8 19.32 npm audit fix --force
+
+#8 19.32
+
+#8 19.32 Run `npm audit` for details.
+
+#8 19.32 npm notice
+
+#8 19.32 npm notice New major version of npm available! 10.8.2 -> 11.8.0
+
+#8 19.32 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.8.0
+
+#8 19.32 npm notice To update run: npm install -g npm@11.8.0
+
+#8 19.32 npm notice
+
+#8 ...
+
+
+#9 [builder 4/6] RUN npm ci
+
+#9 20.56
+
+#9 20.56 added 810 packages, and audited 811 packages in 20s
+
+#9 20.56
+
+#9 20.56 103 packages are looking for funding
+
+#9 20.56 run `npm fund` for details
+
+#9 20.64
+
+#9 20.64 25 vulnerabilities (5 moderate, 20 high)
+
+#9 20.64
+
+#9 20.64 To address issues that do not require attention, run:
+
+#9 20.64 npm audit fix
+
+#9 20.64
+
+#9 20.64 To address all issues (including breaking changes), run:
+
+#9 20.64 npm audit fix --force
+
+#9 20.64
+
+#9 20.64 Run `npm audit` for details.
+
+#9 20.64 npm notice
+
+#9 20.64 npm notice New major version of npm available! 10.8.2 -> 11.8.0
+
+#9 20.64 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.8.0
+
+#9 20.64 npm notice To update run: npm install -g npm@11.8.0
+
+#9 20.64 npm notice
+
+#9 ...
+
+
+#8 [production 4/6] RUN npm ci --omit=dev
+
+#8 DONE 37.2s
+
+
+#9 [builder 4/6] RUN npm ci
+
+#9 DONE 37.2s
+
+
+#10 [builder 5/6] COPY . .
+
+#10 DONE 1.2s
+
+
+#11 [builder 6/6] RUN npm run build
+
+#11 0.221
+
+#11 0.221 > rest-express@1.0.0 build
+
+#11 0.221 > vite build && esbuild server/index-prod.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+
+#11 0.221
+
+#11 0.452 ✘ [ERROR] Could not resolve "./vite-plugin-meta-images"
+
+#11 0.452
+
+#11 0.452 vite.config.ts:6:33:
+
+#11 0.452 6 │ import { metaImagesPlugin } from "./vite-plugin-meta-images";
+
+#11 0.452 ╵ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#11 0.452
+
+#11 0.455 failed to load config from /app/vite.config.ts
+
+#11 0.456 error during build:
+
+#11 0.456 Error: Build failed with 1 error:
+
+#11 0.456 vite.config.ts:6:33: ERROR: Could not resolve "./vite-plugin-meta-images"
+
+#11 0.456 at failureErrorWithLog (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1467:15)
+
+#11 0.456 at /app/node_modules/vite/node_modules/esbuild/lib/main.js:926:25
+
+#11 0.456 at runOnEndCallbacks (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1307:45)
+
+#11 0.456 at buildResponseToResult (/app/node_modules/vite/node_modules/esbuild/lib/main.js:924:7)
+
+#11 0.456 at /app/node_modules/vite/node_modules/esbuild/lib/main.js:951:16
+
+#11 0.456 at responseCallbacks.<computed> (/app/node_modules/vite/node_modules/esbuild/lib/main.js:603:9)
+
+#11 0.456 at handleIncomingPacket (/app/node_modules/vite/node_modules/esbuild/lib/main.js:658:12)
+
+#11 0.456 at Socket.readFromStdout (/app/node_modules/vite/node_modules/esbuild/lib/main.js:581:7)
+
+#11 0.456 at Socket.emit (node:events:524:28)
+
+#11 0.456 at addChunk (node:internal/streams/readable:561:12)
+
+#11 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+
+npm run build failed
+
+------
+
+> [builder 6/6] RUN npm run build:
+
+0.456 at failureErrorWithLog (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1467:15)
+
+0.456 at /app/node_modules/vite/node_modules/esbuild/lib/main.js:926:25
+
+0.456 at runOnEndCallbacks (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1307:45)
+
+0.456 at buildResponseToResult (/app/node_modules/vite/node_modules/esbuild/lib/main.js:924:7)
+
+0.456 at /app/node_modules/vite/node_modules/esbuild/lib/main.js:951:16
+
+0.456 at responseCallbacks.<computed> (/app/node_modules/vite/node_modules/esbuild/lib/main.js:603:9)
+
+0.456 at handleIncomingPacket (/app/node_modules/vite/node_modules/esbuild/lib/main.js:658:12)
+
+0.456 at Socket.readFromStdout (/app/node_modules/vite/node_modules/esbuild/lib/main.js:581:7)
+
+0.456 at Socket.emit (node:events:524:28)
+
+0.456 at addChunk (node:internal/streams/readable:561:12)
+
+------
+
+==> Building image
+
+Waiting for depot builder...
+
+
+==> Building image with Depot
+
+--> build: (​)
+
+#1 [internal] load build definition from Dockerfile
+
+#1 transferring dockerfile: 1.09kB done
+
+#1 DONE 0.0s
+
+
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+
+#2 DONE 0.2s
+
+
+#3 [internal] load .dockerignore
+
+#3 transferring context: 2B done
+
+#3 DONE 0.0s
+
+
+#4 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8
+
+#4 resolve docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8 done
+
+#4 DONE 0.0s
+
+
+#5 [internal] load build context
+
+#5 transferring context: 22.17kB 0.0s done
+
+#5 DONE 0.0s
+
+
+#6 [builder 2/6] WORKDIR /app
+
+#6 CACHED
+
+
+#7 [builder 3/6] COPY package*.json ./
+
+#7 CACHED
+
+
+#8 [builder 4/6] RUN npm ci
+
+#8 CACHED
+
+
+#9 [builder 5/6] COPY . .
+
+#9 CACHED
+
+
+#10 [production 4/6] RUN npm ci --omit=dev
+
+#10 CACHED
+
+
+#11 [builder 6/6] RUN npm run build
+
+#11 0.213
+
+#11 0.213 > rest-express@1.0.0 build
+
+#11 0.213 > vite build && esbuild server/index-prod.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+
+#11 0.213
+
+#11 0.438 ✘ [ERROR] Could not resolve "./vite-plugin-meta-images"
+
+#11 0.438
+
+#11 0.438 vite.config.ts:6:33:
+
+#11 0.438 6 │ import { metaImagesPlugin } from "./vite-plugin-meta-images";
+
+#11 0.438 ╵ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#11 0.438
+
+#11 0.442 failed to load config from /app/vite.config.ts
+
+#11 0.442 error during build:
+
+#11 0.442 Error: Build failed with 1 error:
+
+#11 0.442 vite.config.ts:6:33: ERROR: Could not resolve "./vite-plugin-meta-images"
+
+#11 0.442 at failureErrorWithLog (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1467:15)
+
+#11 0.442 at /app/node_modules/vite/node_modules/esbuild/lib/main.js:926:25
+
+#11 0.442 at runOnEndCallbacks (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1307:45)
+
+#11 0.442 at buildResponseToResult (/app/node_modules/vite/node_modules/esbuild/lib/main.js:924:7)
+
+#11 0.442 at /app/node_modules/vite/node_modules/esbuild/lib/main.js:951:16
+
+#11 0.442 at responseCallbacks.<computed> (/app/node_modules/vite/node_modules/esbuild/lib/main.js:603:9)
+
+#11 0.442 at handleIncomingPacket (/app/node_modules/vite/node_modules/esbuild/lib/main.js:658:12)
+
+#11 0.442 at Socket.readFromStdout (/app/node_modules/vite/node_modules/esbuild/lib/main.js:581:7)
+
+#11 0.442 at Socket.emit (node:events:524:28)
+
+#11 0.442 at addChunk (node:internal/streams/readable:561:12)
+
+#11 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+
+npm run build failed
+
+------
+
+> [builder 6/6] RUN npm run build:
+
+0.442 at failureErrorWithLog (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1467:15)
+
+0.442 at /app/node_modules/vite/node_modules/esbuild/lib/main.js:926:25
+
+0.442 at runOnEndCallbacks (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1307:45)
+
+0.442 at buildResponseToResult (/app/node_modules/vite/node_modules/esbuild/lib/main.js:924:7)
+
+0.442 at /app/node_modules/vite/node_modules/esbuild/lib/main.js:951:16
+
+0.442 at responseCallbacks.<computed> (/app/node_modules/vite/node_modules/esbuild/lib/main.js:603:9)
+
+0.442 at handleIncomingPacket (/app/node_modules/vite/node_modules/esbuild/lib/main.js:658:12)
+
+0.442 at Socket.readFromStdout (/app/node_modules/vite/node_modules/esbuild/lib/main.js:581:7)
+
+0.442 at Socket.emit (node:events:524:28)
+
+0.442 at addChunk (node:internal/streams/readable:561:12)
+
+------
+
+Error: failed to fetch an image or build from source: error building: failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+
+npm run build failed
+
+unsuccessful command 'flyctl deploy --build-only --push -a barbaarintasan-staging-y8fvaq --image-label deployment-910768dfd9a3bbcc0d3decb30bbccd7a --config fly.toml'
+
+Deploy application
+
+Create Fly.io git branch with new files
+Dockerfile
+fly.toml
+
+Use preset Dockerfile
+
+Copy
+# Barbaarintasan Academy - Fly.io Dockerfile
+# Multi-stage build for production
+
+# Stage 1: Build
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build the application (vite build + esbuild server bundle)
+RUN npm run build
+
+# Stage 2: Production
+FROM node:20-alpine AS production
+
+WORKDIR /app
+
+# Install only production dependencies
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy built assets from builder
+# dist/ contains: index.js (bundled server) and public/ (client build)
+COPY --from=builder /app/dist ./dist
+
+# Copy static assets needed at runtime
+COPY --from=builder /app/attached_assets ./attached_assets
+
+# Expose port (Fly.io uses 8080 by default)
+EXPOSE 8080
+
+# Set environment
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
+
+# Start the application
+CMD ["node", "dist/index.js"]
+
+
+Copy context
+The context for AI can be pasted into any LLM and it will generate a fixed version of the code above.
+npm failed to build your repo
+Your repo npm run build failed. Check out logs from the Build Image step to see what went wrong or press "Copy question to ask AI" as paste in your favorite LLM to get it fixed.
+
+After writting a fix, you can retry the deployment using the buttons below.
+
+You can also ask help in our community forum 
+
+Retry same commit now (2ba19b9) Retry from latest commit (main)

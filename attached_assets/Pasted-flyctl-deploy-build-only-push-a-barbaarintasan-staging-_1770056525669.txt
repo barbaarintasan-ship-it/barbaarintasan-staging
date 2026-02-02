@@ -1,0 +1,166 @@
+flyctl deploy --build-only --push -a barbaarintasan-staging --image-label deployment-79238f0f0ca4d284103b0b0e38ef721f --config fly.toml
+==> Verifying app config
+--> Verified app config
+Validating fly.toml
+[32m✓[0m Configuration is valid
+==> Building image
+Waiting for depot builder...
+
+==> Building image with Depot
+--> build:  (​)
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.09kB 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+#2 DONE 0.2s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8
+#4 resolve docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8 done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 30.90MB 0.5s done
+#5 DONE 0.5s
+
+#6 [builder 3/6] COPY package*.json ./
+#6 CACHED
+
+#7 [builder 2/6] WORKDIR /app
+#7 CACHED
+
+#8 [production 4/6] RUN npm ci --omit=dev
+#8 CACHED
+
+#9 [builder 4/6] RUN npm ci
+#9 CACHED
+
+#10 [builder 5/6] COPY . .
+#10 DONE 0.2s
+
+#11 [builder 6/6] RUN npm run build
+#11 0.480 
+#11 0.480 > rest-express@1.0.0 build
+#11 0.480 > vite build && esbuild server/index-prod.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+#11 0.480 
+#11 0.827 ✘ [ERROR] Could not resolve "./vite-plugin-meta-images"
+#11 0.827 
+#11 0.827     vite.config.ts:6:33:
+#11 0.827       6 │ import { metaImagesPlugin } from "./vite-plugin-meta-images";
+#11 0.827         ╵                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#11 0.827 
+#11 0.833 failed to load config from /app/vite.config.ts
+#11 0.834 error during build:
+#11 0.834 Error: Build failed with 1 error:
+#11 0.834 vite.config.ts:6:33: ERROR: Could not resolve "./vite-plugin-meta-images"
+#11 0.834     at failureErrorWithLog (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1467:15)
+#11 0.834     at /app/node_modules/vite/node_modules/esbuild/lib/main.js:926:25
+#11 0.834     at runOnEndCallbacks (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1307:45)
+#11 0.834     at buildResponseToResult (/app/node_modules/vite/node_modules/esbuild/lib/main.js:924:7)
+#11 0.834     at /app/node_modules/vite/node_modules/esbuild/lib/main.js:951:16
+#11 0.834     at responseCallbacks.<computed> (/app/node_modules/vite/node_modules/esbuild/lib/main.js:603:9)
+#11 0.834     at handleIncomingPacket (/app/node_modules/vite/node_modules/esbuild/lib/main.js:658:12)
+#11 0.834     at Socket.readFromStdout (/app/node_modules/vite/node_modules/esbuild/lib/main.js:581:7)
+#11 0.834     at Socket.emit (node:events:524:28)
+#11 0.834     at addChunk (node:internal/streams/readable:561:12)
+#11 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+npm run build failed
+------
+ > [builder 6/6] RUN npm run build:
+0.834     at failureErrorWithLog (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1467:15)
+0.834     at /app/node_modules/vite/node_modules/esbuild/lib/main.js:926:25
+0.834     at runOnEndCallbacks (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1307:45)
+0.834     at buildResponseToResult (/app/node_modules/vite/node_modules/esbuild/lib/main.js:924:7)
+0.834     at /app/node_modules/vite/node_modules/esbuild/lib/main.js:951:16
+0.834     at responseCallbacks.<computed> (/app/node_modules/vite/node_modules/esbuild/lib/main.js:603:9)
+0.834     at handleIncomingPacket (/app/node_modules/vite/node_modules/esbuild/lib/main.js:658:12)
+0.834     at Socket.readFromStdout (/app/node_modules/vite/node_modules/esbuild/lib/main.js:581:7)
+0.834     at Socket.emit (node:events:524:28)
+0.834     at addChunk (node:internal/streams/readable:561:12)
+------
+==> Building image
+Waiting for depot builder...
+
+==> Building image with Depot
+--> build:  (​)
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.09kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:20-alpine
+#2 DONE 0.2s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [builder 1/6] FROM docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8
+#4 resolve docker.io/library/node:20-alpine@sha256:09e2b3d9726018aecf269bd35325f46bf75046a643a66d28360ec71132750ec8 done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 22.22kB 0.0s done
+#5 DONE 0.0s
+
+#6 [builder 3/6] COPY package*.json ./
+#6 CACHED
+
+#7 [builder 4/6] RUN npm ci
+#7 CACHED
+
+#8 [builder 2/6] WORKDIR /app
+#8 CACHED
+
+#9 [builder 5/6] COPY . .
+#9 CACHED
+
+#10 [production 4/6] RUN npm ci --omit=dev
+#10 CACHED
+
+#11 [builder 6/6] RUN npm run build
+#11 0.227 
+#11 0.227 > rest-express@1.0.0 build
+#11 0.227 > vite build && esbuild server/index-prod.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+#11 0.227 
+#11 0.449 ✘ [ERROR] Could not resolve "./vite-plugin-meta-images"
+#11 0.449 
+#11 0.449     vite.config.ts:6:33:
+#11 0.449       6 │ import { metaImagesPlugin } from "./vite-plugin-meta-images";
+#11 0.449         ╵                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#11 0.449 
+#11 0.452 failed to load config from /app/vite.config.ts
+#11 0.453 error during build:
+#11 0.453 Error: Build failed with 1 error:
+#11 0.453 vite.config.ts:6:33: ERROR: Could not resolve "./vite-plugin-meta-images"
+#11 0.453     at failureErrorWithLog (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1467:15)
+#11 0.453     at /app/node_modules/vite/node_modules/esbuild/lib/main.js:926:25
+#11 0.453     at runOnEndCallbacks (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1307:45)
+#11 0.453     at buildResponseToResult (/app/node_modules/vite/node_modules/esbuild/lib/main.js:924:7)
+#11 0.453     at /app/node_modules/vite/node_modules/esbuild/lib/main.js:951:16
+#11 0.453     at responseCallbacks.<computed> (/app/node_modules/vite/node_modules/esbuild/lib/main.js:603:9)
+#11 0.453     at handleIncomingPacket (/app/node_modules/vite/node_modules/esbuild/lib/main.js:658:12)
+#11 0.453     at Socket.readFromStdout (/app/node_modules/vite/node_modules/esbuild/lib/main.js:581:7)
+#11 0.453     at Socket.emit (node:events:524:28)
+#11 0.453     at addChunk (node:internal/streams/readable:561:12)
+#11 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+npm run build failed
+------
+ > [builder 6/6] RUN npm run build:
+0.453     at failureErrorWithLog (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1467:15)
+0.453     at /app/node_modules/vite/node_modules/esbuild/lib/main.js:926:25
+0.453     at runOnEndCallbacks (/app/node_modules/vite/node_modules/esbuild/lib/main.js:1307:45)
+0.453     at buildResponseToResult (/app/node_modules/vite/node_modules/esbuild/lib/main.js:924:7)
+0.453     at /app/node_modules/vite/node_modules/esbuild/lib/main.js:951:16
+0.453     at responseCallbacks.<computed> (/app/node_modules/vite/node_modules/esbuild/lib/main.js:603:9)
+0.453     at handleIncomingPacket (/app/node_modules/vite/node_modules/esbuild/lib/main.js:658:12)
+0.453     at Socket.readFromStdout (/app/node_modules/vite/node_modules/esbuild/lib/main.js:581:7)
+0.453     at Socket.emit (node:events:524:28)
+0.453     at addChunk (node:internal/streams/readable:561:12)
+------
+Error: failed to fetch an image or build from source: error building: failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+npm run build failed
+unsuccessful command 'flyctl deploy --build-only --push -a barbaarintasan-staging --image-label deployment-79238f0f0ca4d284103b0b0e38ef721f --config fly.toml'

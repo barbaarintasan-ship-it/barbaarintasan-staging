@@ -1,0 +1,123 @@
+1️⃣ Go’aanka La Qaatay – Waa Sax
+
+Waxaad dooratay:
+
+Ikhtiyaar 1: External cron + API endpoint
+
+Tani micnaheedu waa:
+
+❌ Replit Scheduled Deployment → lama adeegsanayo
+
+✅ Cron dibadda ah (cron-job.org)
+
+✅ API endpoint adiga gacanta ku haya
+
+✅ Script-kaaga jira lama beddelayo
+
+👏 Tani waa production-grade solution.
+
+2️⃣ Sida Ay Wax u Shaqaynayaan (Flow)
+cron-job.org (05:00 UTC)
+        ↓
+POST /api/cron/daily-content
+        ↓
+Secret check (DAILY_CRON_SECRET)
+        ↓
+scheduled/dailyContent.ts
+        ↓
+Parent Message + Bedtime Story la abuuro
+
+
+Haddii hal meel fashilanto → waad arki kartaa log + sababta.
+
+3️⃣ Hubinta Ugu Muhiimsan (Checklist)
+✅ 1. API Endpoint
+
+Hubi in endpoint-kan jira:
+
+POST /api/cron/daily-content
+
+
+Waxaa ku jira:
+
+DAILY_CRON_SECRET
+
+Wacaya scheduled/dailyContent.ts
+
+Haddii Replit agent-ku yidhi “waan samayn doonaa” → waa sax.
+
+✅ 2. Secret (AAD U MUHIIM AH)
+
+Replit → Secrets / Environment Variables
+
+Ku dar:
+
+DAILY_CRON_SECRET = your-very-strong-secret
+
+
+⚠️ Haddii secret-ku maqan yahay → cron waligiis ma shaqaynayo.
+
+✅ 3. Cron-job.org Setup (Adiga Ayaad Samaynaysaa)
+
+cron-job.org → Create Job
+
+Settings:
+
+URL:
+
+https://YOUR_APP_URL/api/cron/daily-content
+
+
+Method: POST
+
+Headers:
+
+Authorization: Bearer your-very-strong-secret
+
+
+Schedule:
+
+Timezone: UTC
+
+Time: 05:00
+
+Every day ✅
+
+💡 Haddii aad rabto 8:00 subaxnimo Somalia → waa isla 05:00 UTC.
+
+4️⃣ Sida Aad U Tijaabin Karto (Hadda)
+
+Ka hor intaadan sugin subax:
+
+Test degdeg ah:
+
+Isticmaal Postman / Thunder Client / curl
+
+Dir:
+
+POST /api/cron/daily-content
+Authorization: Bearer SECRET
+
+
+Haddii:
+
+Parent message + bedtime story la abuuro ✅
+→ Wax walba waa sax.
+
+5️⃣ Maxaa Tani U Xalisaa Dhibaatooyinkii Hore?
+Dhibaatadii Hore	Xalka Cusub
+Replit wuu seexdaa	Cron dibadda ah
+Ballan been ah	Schedule dhab ah
+Log la’aan	Cron + API logs
+“Mar wuu shaqeeyaa”	Mar walba wuu shaqeeyaa
+6️⃣ Taladayda Ugu Dambaysa (Xirfadaysan)
+
+Ha ku noqon Replit schedule mar dambe
+
+Habkan cusub:
+
+Waa la xakameyn karaa
+
+Waa la hubin karaa
+
+Waa la ballaarin karaa (future analytics, retries, alerts)
