@@ -3,7 +3,7 @@ import { Link, useSearch } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useParentAuth } from "@/contexts/ParentAuthContext";
-import { ArrowLeft, CheckCircle, Upload, Loader2, Phone, CreditCard, Crown, ExternalLink } from "lucide-react";
+import { ArrowLeft, CheckCircle, Upload, Loader2, Phone, CreditCard, Crown, ExternalLink, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,8 +84,53 @@ export default function GoldenMembership() {
       return res.json();
     }
   });
+
+  // Fetch pricing plans from database
+  const { data: pricingPlans = [] } = useQuery({
+    queryKey: ["pricingPlans"],
+    queryFn: async () => {
+      const res = await fetch("/api/pricing-plans");
+      if (!res.ok) return [];
+      return res.json();
+    }
+  });
+
+  // Get prices from database with fallbacks
+  const yearlyPlan = pricingPlans.find((p: any) => p.planType === 'yearly');
+  const monthlyPlan = pricingPlans.find((p: any) => p.planType === 'monthly');
+  const dbPricePerYear = yearlyPlan ? yearlyPlan.priceUsd / 100 : pricePerYear;
+  const dbPricePerMonth = monthlyPlan ? monthlyPlan.priceUsd / 100 : 30;
+
+  const [selectedPlan, setSelectedPlan] = useState<'yearly' | 'monthly'>('yearly');
   
   const { uploadFile, isUploading: uploadingFile } = useUpload();
+  const [stripeLoading, setStripeLoading] = useState(false);
+  
+  const handleStripeCheckout = async () => {
+    if (!parent) {
+      toast.error("Fadlan soo gal si aad u sii wadato");
+      return;
+    }
+    
+    setStripeLoading(true);
+    try {
+      const res = await apiRequest("POST", "/api/stripe/create-checkout-session", {
+        planType: selectedPlan,
+        courseId: null,
+      });
+      const data = await res.json();
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Checkout session failed");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Stripe checkout failed");
+    } finally {
+      setStripeLoading(false);
+    }
+  };
   
   const submitMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -335,6 +380,58 @@ export default function GoldenMembership() {
               {t("goldenMember.benefit5")}
             </li>
           </ul>
+        </div>
+        
+        {/* Stripe Payment - Card/Online */}
+        <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl p-4 shadow-lg mb-6">
+          <h3 className="font-bold text-white mb-3 flex items-center gap-2 text-lg">
+            <Sparkles className="w-5 h-5" />
+            Lacag bixinta Kaarka (Card Payment)
+          </h3>
+          <div className="bg-white rounded-xl p-4">
+            <p className="text-gray-600 text-sm mb-4">
+              Ku bixi kaarka debitka ama kiridhitka si degdeg ah oo ammaan ah.
+            </p>
+            
+            {/* Yearly Plan - $114 */}
+            <div className="mb-4" data-testid="stripe-yearly-button">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded">⭐ UGU FIICAN</span>
+                <span className="font-bold text-gray-800">Sannadkii - ${dbPricePerYear}</span>
+              </div>
+              <button 
+                onClick={() => { setSelectedPlan('yearly'); handleStripeCheckout(); }}
+                disabled={stripeLoading}
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg disabled:opacity-50 text-lg"
+                data-testid="button-yearly-checkout"
+              >
+                {stripeLoading && selectedPlan === 'yearly' ? "⏳ Waa la furanayaa..." : `💳 Ku bixi $${dbPricePerYear} (Sannadkii)`}
+              </button>
+            </div>
+
+            {/* Monthly Plan - $30 */}
+            <div className="border-t pt-4" data-testid="stripe-monthly-button">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="font-bold text-gray-800">Bishii - ${dbPricePerMonth}</span>
+              </div>
+              <button 
+                onClick={() => { setSelectedPlan('monthly'); handleStripeCheckout(); }}
+                disabled={stripeLoading}
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg disabled:opacity-50"
+                data-testid="button-monthly-checkout"
+              >
+                {stripeLoading && selectedPlan === 'monthly' ? "⏳ Waa la furanayaa..." : `💳 Ku bixi $${dbPricePerMonth} (Bishii)`}
+              </button>
+            </div>
+
+            <p className="text-center text-xs text-gray-500 mt-4">
+              Waxaa lagu maamulaa Stripe - Ammaan oo caalami ah
+            </p>
+          </div>
+        </div>
+        
+        <div className="text-center text-gray-500 font-medium text-sm mb-4">
+          ——— ama ———
         </div>
         
         {/* Payment Methods - Where to send money */}

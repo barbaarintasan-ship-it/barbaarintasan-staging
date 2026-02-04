@@ -5,9 +5,12 @@ import { generateBedtimeStoryAudio } from "./tts";
 import { saveMaaweelToGoogleDrive } from "./googleDrive";
 import OpenAI from "openai";
 
+// Use Replit AI Integration on Replit, fallback to direct OpenAI on Fly.io
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  ...(process.env.AI_INTEGRATIONS_OPENAI_API_KEY && process.env.AI_INTEGRATIONS_OPENAI_BASE_URL 
+    ? { baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL } 
+    : {}),
 });
 
 const SAHABI_CHARACTERS = [

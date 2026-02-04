@@ -29,6 +29,7 @@ import { getParentingHelp, checkRateLimit } from "./ai/parenting-help";
 import { moderateContent } from "./ai/content-moderation";
 import { createPaypalOrder, capturePaypalOrder, loadPaypalDefault, verifyPaypalOrder } from "./paypal";
 import { AccessToken } from "livekit-server-sdk";
+import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 
 const recordingUpload = multer({ 
   storage: multer.memoryStorage(),
@@ -1393,18 +1394,12 @@ Ka jawaab qaabkan JSON ah:
 
       console.log(`[SAVE] Saving ${type} content to database`);
 
-      // Upload audio to Google Drive and get URL
+      // Store audio as base64 data URL (works on Fly.io without Google Drive)
       let audioUrl: string | null = null;
       if (audioBase64) {
-        try {
-          const audioBuffer = Buffer.from(audioBase64, 'base64');
-          const { uploadAudioToGoogleDrive } = await import("./googleDrive");
-          const fileName = `${today}_${title?.replace(/[/\\?%*:|"<>]/g, '-') || 'audio'}.mp3`;
-          audioUrl = await uploadAudioToGoogleDrive(audioBuffer, fileName, type as 'dhambaal' | 'sheeko');
-          console.log(`[SAVE] Audio uploaded to Google Drive: ${audioUrl}`);
-        } catch (driveError) {
-          console.error("[SAVE] Google Drive audio upload error:", driveError);
-        }
+        // Store as data URL for direct playback in browser
+        audioUrl = `data:audio/mpeg;base64,${audioBase64}`;
+        console.log(`[SAVE] Audio stored as base64 data URL (${Math.round(audioBase64.length / 1024)} KB)`);
       }
 
       // Use provided images array or empty array
@@ -7732,6 +7727,54 @@ Return a JSON object with:
     }
   });
 
+  // ========== PRICING PLANS ROUTES ==========
+
+  // Public: Get active pricing plans
+  app.get("/api/pricing-plans", async (req, res) => {
+    try {
+      const plans = await storage.getActivePricingPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching pricing plans:", error);
+      res.status(500).json({ error: "Failed to fetch pricing plans" });
+    }
+  });
+
+  // Admin: Get all pricing plans
+  app.get("/api/admin/pricing-plans", requireAuth, async (req, res) => {
+    try {
+      const plans = await storage.getAllPricingPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching pricing plans:", error);
+      res.status(500).json({ error: "Failed to fetch pricing plans" });
+    }
+  });
+
+  // Admin: Update pricing plan
+  app.patch("/api/admin/pricing-plans/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, description, priceUsd, isActive } = req.body;
+      
+      const updated = await storage.updatePricingPlan(id, {
+        name,
+        description,
+        priceUsd,
+        isActive,
+      });
+      
+      if (!updated) {
+        return res.status(404).json({ error: "Pricing plan not found" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating pricing plan:", error);
+      res.status(500).json({ error: "Failed to update pricing plan" });
+    }
+  });
+
   // ========== HOMEPAGE SECTIONS ROUTES ==========
 
   // Public: Get visible homepage sections (ordered)
@@ -11446,36 +11489,84 @@ Generate ${count} unique and DISTINCTLY DIFFERENT image prompts as JSON array wi
     }
   });
 
-  // Public TTS audio streaming endpoint (no auth required for bedtime stories and parent messages)
+  // Public TTS audio streaming endpoint (no auth required - uses public Google Drive URLs)
+  // Works on both Replit and Fly.io without requiring Google authentication
   app.get("/api/tts-audio/:fileId", async (req, res) => {
+    const fileId = req.params.fileId;
+    console.log("[TTS Stream] Request for file:", fileId);
+    
     try {
-      const { streamAudioFile } = await import("./google-drive");
-      const result = await streamAudioFile(req.params.fileId);
+      // First try using Replit connector (works in Replit environment)
+      const hasReplitConnector = !!(process.env.REPLIT_CONNECTORS_HOSTNAME && 
+        (process.env.REPL_IDENTITY || process.env.WEB_REPL_RENEWAL));
       
-      if (!result) {
-        console.error("[TTS Stream] Failed to get audio stream for file:", req.params.fileId);
+      if (hasReplitConnector) {
+        try {
+          const { streamAudioFile } = await import("./google-drive");
+          const result = await streamAudioFile(fileId);
+          
+          if (result) {
+            console.log("[TTS Stream] Streaming via Replit connector, mimeType:", result.mimeType);
+            res.setHeader('Content-Type', result.mimeType);
+            if (result.size) {
+              res.setHeader('Content-Length', result.size);
+            }
+            res.setHeader('Accept-Ranges', 'bytes');
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+            
+            result.stream.pipe(res);
+            result.stream.on('error', (err) => {
+              console.error("[TTS Stream] Replit connector stream error:", err);
+            });
+            return;
+          }
+        } catch (connectorError) {
+          console.warn("[TTS Stream] Replit connector failed, falling back to public URL:", connectorError);
+        }
+      }
+      
+      // Fallback: Direct proxy from public Google Drive URL (works on Fly.io)
+      console.log("[TTS Stream] Using public Google Drive proxy for file:", fileId);
+      const publicUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      
+      const response = await fetch(publicUrl, {
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; AudioProxy/1.0)'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error("[TTS Stream] Public URL fetch failed:", response.status, response.statusText);
         return res.status(404).json({ error: "Audio file not found" });
       }
       
-      console.log("[TTS Stream] Streaming TTS audio, mimeType:", result.mimeType, "size:", result.size);
+      const contentType = response.headers.get('content-type') || 'audio/mpeg';
+      const contentLength = response.headers.get('content-length');
       
-      res.setHeader('Content-Type', result.mimeType);
-      if (result.size) {
-        res.setHeader('Content-Length', result.size);
+      console.log("[TTS Stream] Streaming from public URL, contentType:", contentType);
+      
+      res.setHeader('Content-Type', contentType);
+      if (contentLength) {
+        res.setHeader('Content-Length', contentLength);
       }
       res.setHeader('Accept-Ranges', 'bytes');
       res.setHeader('Cache-Control', 'public, max-age=86400');
       
-      result.stream.pipe(res);
-      
-      result.stream.on('error', (err) => {
-        console.error("[TTS Stream] Stream error:", err);
-        if (!res.headersSent) {
-          res.status(500).json({ error: "Stream error" });
-        }
-      });
+      // Stream the response body to the client
+      if (response.body) {
+        const { Readable } = await import('stream');
+        const nodeStream = Readable.fromWeb(response.body as any);
+        nodeStream.pipe(res);
+        nodeStream.on('error', (err) => {
+          console.error("[TTS Stream] Public URL stream error:", err);
+        });
+      } else {
+        const buffer = await response.arrayBuffer();
+        res.send(Buffer.from(buffer));
+      }
     } catch (error) {
-      console.error("Error streaming TTS audio:", error);
+      console.error("[TTS Stream] Error streaming audio:", error);
       if (!res.headersSent) {
         res.status(500).json({ error: "Failed to stream audio" });
       }
@@ -13938,6 +14029,235 @@ MUHIIM: Soo celi JSON keliya, wax kale ha ku darin.`;
     } catch (error) {
       console.error("[PAYPAL] Course purchase completion error:", error);
       res.status(500).json({ error: "Failed to complete course purchase" });
+    }
+  });
+
+  // ===========================================
+  // STRIPE PAYMENT ROUTES
+  // ===========================================
+
+  // Get Stripe publishable key for frontend
+  app.get("/api/stripe/config", async (req, res) => {
+    try {
+      const publishableKey = await getStripePublishableKey();
+      res.json({ publishableKey });
+    } catch (error) {
+      console.error("[STRIPE] Failed to get publishable key:", error);
+      res.status(500).json({ error: "Stripe not configured" });
+    }
+  });
+
+  // Create Stripe checkout session for subscription or one-time purchase
+  app.post("/api/stripe/create-checkout-session", async (req, res) => {
+    if (!req.session.parentId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    try {
+      const { planType, courseId } = req.body;
+      
+      if (!planType) {
+        return res.status(400).json({ error: "Missing plan type" });
+      }
+
+      const parent = await storage.getParentById(req.session.parentId);
+      if (!parent) {
+        return res.status(404).json({ error: "Parent not found" });
+      }
+
+      // Fetch pricing from database
+      const pricingPlan = await storage.getPricingPlanByType(planType);
+      if (!pricingPlan || !pricingPlan.isActive) {
+        return res.status(400).json({ error: "Invalid or inactive plan type" });
+      }
+
+      const stripe = await getUncachableStripeClient();
+
+      // Get or create Stripe customer
+      let customerId = parent.stripeCustomerId;
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: parent.email,
+          name: parent.name,
+          metadata: { parentId: parent.id },
+        });
+        customerId = customer.id;
+        await storage.updateParent(parent.id, { stripeCustomerId: customer.id });
+      }
+
+      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+      
+      // Use pricing from database
+      const isSubscription = pricingPlan.isRecurring;
+      
+      const lineItem: any = {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: pricingPlan.name,
+            description: pricingPlan.description || `Barbaarintasan Academy - ${pricingPlan.name}`,
+          },
+          unit_amount: pricingPlan.priceUsd,
+        },
+        quantity: 1,
+      };
+      
+      if (isSubscription && pricingPlan.interval) {
+        lineItem.price_data.recurring = { interval: pricingPlan.interval as 'month' | 'year' };
+      }
+      
+      const sessionParams: any = {
+        customer: customerId,
+        payment_method_types: ['card'],
+        line_items: [lineItem],
+        mode: isSubscription ? 'subscription' : 'payment',
+        success_url: `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/golden-membership`,
+        metadata: {
+          parentId: parent.id,
+          planType,
+          courseId: courseId || 'all-access',
+        },
+      };
+
+      const session = await stripe.checkout.sessions.create(sessionParams);
+
+      res.json({ url: session.url, sessionId: session.id });
+    } catch (error: any) {
+      console.error("[STRIPE] Checkout session creation error:", error?.message || error);
+      console.error("[STRIPE] Full error:", JSON.stringify(error, null, 2));
+      res.status(500).json({ error: error?.message || "Failed to create checkout session" });
+    }
+  });
+
+  // Verify Stripe checkout session after successful payment
+  app.post("/api/stripe/verify-session", async (req, res) => {
+    if (!req.session.parentId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    try {
+      const { sessionId } = req.body;
+      
+      if (!sessionId) {
+        return res.status(400).json({ error: "Missing session ID" });
+      }
+
+      const stripe = await getUncachableStripeClient();
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      if (session.payment_status !== 'paid') {
+        return res.status(400).json({ error: "Payment not completed" });
+      }
+
+      const parent = await storage.getParentById(req.session.parentId);
+      if (!parent) {
+        return res.status(404).json({ error: "Parent not found" });
+      }
+
+      const planType = session.metadata?.planType;
+      const courseId = session.metadata?.courseId;
+
+      // Calculate access period
+      const now = new Date();
+      let accessEnd: Date;
+      if (planType === "yearly") {
+        accessEnd = new Date(now);
+        accessEnd.setFullYear(accessEnd.getFullYear() + 1);
+      } else if (planType === "monthly") {
+        accessEnd = new Date(now);
+        accessEnd.setMonth(accessEnd.getMonth() + 1);
+      } else {
+        // One-time purchase - lifetime access
+        accessEnd = new Date("2099-12-31");
+      }
+
+      // Update Stripe subscription ID if it's a subscription
+      if (session.subscription) {
+        await storage.updateParent(parent.id, { 
+          stripeSubscriptionId: session.subscription as string 
+        });
+      }
+
+      // Create enrollment
+      if (courseId && courseId !== 'all-access') {
+        await storage.createEnrollment({
+          parentId: parent.id,
+          courseId: courseId,
+          planType: planType || 'one-time',
+          accessEnd: accessEnd,
+          status: "active",
+          amountPaid: (session.amount_total! / 100).toString(),
+        });
+      } else {
+        // All-access subscription - enroll in all courses
+        const courses = await storage.getAllCourses();
+        for (const course of courses) {
+          const existing = await storage.getEnrollmentByParentAndCourse(parent.id, course.id);
+          if (!existing) {
+            await storage.createEnrollment({
+              parentId: parent.id,
+              courseId: course.id,
+              planType: planType || 'subscription',
+              accessEnd: accessEnd,
+              status: "active",
+              amountPaid: (session.amount_total! / 100).toString(),
+            });
+          }
+        }
+      }
+
+      console.log(`[STRIPE] Payment verified and enrollment created for parent ${parent.id}`);
+
+      // Send confirmation email
+      try {
+        await sendPurchaseConfirmationEmail(
+          parent.email,
+          parent.name || "Waalid",
+          courseId === 'all-access' ? "Dhammaan Koorsooyinka" : "Koorsada",
+          planType || "one-time",
+          session.amount_total! / 100,
+          undefined
+        );
+      } catch (emailError) {
+        console.error("[STRIPE] Failed to send confirmation email:", emailError);
+      }
+
+      res.json({ 
+        success: true, 
+        message: "Payment verified successfully",
+        accessEnd: accessEnd.toISOString()
+      });
+    } catch (error) {
+      console.error("[STRIPE] Session verification error:", error);
+      res.status(500).json({ error: "Failed to verify payment" });
+    }
+  });
+
+  // Get Stripe customer portal URL for subscription management
+  app.post("/api/stripe/customer-portal", async (req, res) => {
+    if (!req.session.parentId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
+    try {
+      const parent = await storage.getParentById(req.session.parentId);
+      if (!parent || !parent.stripeCustomerId) {
+        return res.status(404).json({ error: "No Stripe customer found" });
+      }
+
+      const stripe = await getUncachableStripeClient();
+      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: parent.stripeCustomerId,
+        return_url: `${baseUrl}/profile`,
+      });
+
+      res.json({ url: portalSession.url });
+    } catch (error) {
+      console.error("[STRIPE] Customer portal error:", error);
+      res.status(500).json({ error: "Failed to create portal session" });
     }
   });
 
