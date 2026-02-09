@@ -19,12 +19,13 @@ import { Progress } from "@/components/ui/progress";
 // PayPal integration available but currently disabled - backend routes preserved for future use
 
 
-type PlanType = "monthly" | "yearly";
+type PlanType = "monthly" | "yearly" | "one-time";
 
-// Default prices as fallback
+// Default prices as fallback (in dollars)
 const defaultPrices: Record<PlanType, number> = {
   monthly: 30,
   yearly: 114,
+  "one-time": 99,
 };
 
 
@@ -36,7 +37,8 @@ export default function CourseDetail() {
   const [selectedPlan, setSelectedPlan] = useState<PlanType>("yearly");
   const [showMonthlyWarning, setShowMonthlyWarning] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentType, setPaymentType] = useState<"paypal" | "manual" | null>(null);
+  const [paymentType, setPaymentType] = useState<"paypal" | "manual" | "stripe" | null>(null);
+  const [stripeLoading, setStripeLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     customerName: "",
@@ -188,6 +190,15 @@ export default function CourseDetail() {
     },
   });
 
+  // Fetch pricing plans from database
+  const { data: pricingPlans = [] } = useQuery({
+    queryKey: ["pricingPlans"],
+    queryFn: async () => {
+      const res = await fetch("/api/pricing-plans");
+      return res.json();
+    },
+  });
+
   // Check if parent is logged in using context
   const { parent, isLoading: parentLoading } = useParentAuth();
   const isLoggedIn = !!parent;
@@ -333,6 +344,21 @@ export default function CourseDetail() {
     },
   });
 
+  // Use pricing plans from database, with fallback to defaults
+  // This must be defined before any conditional returns to follow React hooks rules
+  const planPrices: Record<PlanType, number> = useMemo(() => {
+    const monthlyPlan = pricingPlans.find((p: any) => p.planType === 'monthly');
+    const yearlyPlan = pricingPlans.find((p: any) => p.planType === 'yearly');
+    const oneTimePlan = pricingPlans.find((p: any) => p.planType === 'one-time');
+    
+    return {
+      // Database prices are stored in cents, convert to dollars
+      monthly: monthlyPlan ? monthlyPlan.priceUsd / 100 : (course?.priceMonthly ?? defaultPrices.monthly),
+      yearly: yearlyPlan ? yearlyPlan.priceUsd / 100 : (course?.priceYearly ?? defaultPrices.yearly),
+      "one-time": oneTimePlan ? oneTimePlan.priceUsd / 100 : defaultPrices["one-time"],
+    };
+  }, [pricingPlans, course]);
+
   if (courseLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -410,12 +436,6 @@ export default function CourseDetail() {
       </div>
     );
   }
-
-  // Use course-specific prices if available, otherwise fall back to defaults
-  const planPrices: Record<PlanType, number> = {
-    monthly: course.priceMonthly ?? defaultPrices.monthly,
-    yearly: course.priceYearly ?? defaultPrices.yearly,
-  };
 
   // Use lessons directly - quizzes and assignments are now standalone lessons with lessonType field
   const lessonsWithExtras = [...lessons].map((lesson: any) => ({
@@ -514,6 +534,38 @@ export default function CourseDetail() {
     setShowPaymentModal(true);
     setSubmitted(false);
     setSelectedMethod(null);
+    setPaymentType(null);
+  };
+
+  const handleStripeCheckout = async () => {
+    if (!parent) {
+      toast.error("Fadlan soo gal si aad u sii wadato");
+      return;
+    }
+    
+    setStripeLoading(true);
+    try {
+      const res = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          planType: selectedPlan,
+          courseId: courseId,
+        }),
+      });
+      const data = await res.json();
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || "Checkout session failed");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Stripe checkout failed");
+    } finally {
+      setStripeLoading(false);
+    }
   };
 
   const handleScreenshotUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -785,6 +837,33 @@ export default function CourseDetail() {
                         <span className="font-semibold text-gray-900">{t("courseDetail.monthlyMember")}</span>
                       </div>
                       <span className="font-bold text-lg text-gray-900">${planPrices.monthly}<span className="text-sm font-normal text-gray-500">{t("courseDetail.perMonth")}</span></span>
+                    </div>
+                  </button>
+
+                  {/* Hal Mar Iibso - One-Time Purchase Option */}
+                  <button
+                    onClick={() => setSelectedPlan("one-time")}
+                    className={`w-full p-4 rounded-xl text-left transition-all border ${
+                      selectedPlan === "one-time" ? "bg-green-50 border-green-400" : "bg-gray-50 border-gray-200"
+                    }`}
+                    data-testid="plan-one-time"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                          selectedPlan === "one-time" ? "bg-green-600" : "border-2 border-gray-300"
+                        }`}>
+                          {selectedPlan === "one-time" && <div className="w-2 h-2 rounded-full bg-white"></div>}
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-900">Hal Mar Iibso</span>
+                          <p className="text-xs text-gray-500">Koorsada oo keliya, adigoo iska leh</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-bold text-lg text-gray-900">${planPrices["one-time"]}</span>
+                        <p className="text-xs text-green-600">Hal lacag oo keliya</p>
+                      </div>
                     </div>
                   </button>
                 </div>
@@ -1160,12 +1239,40 @@ export default function CourseDetail() {
               {/* Course & Price Header */}
               <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-4 rounded-xl text-white">
                 <p className="text-sm opacity-90">{course.title}</p>
-                <p className="text-2xl font-bold mt-1">${planPrices[selectedPlan]} <span className="text-sm font-normal opacity-80">/ {selectedPlan === 'monthly' ? 'bishii' : 'sannadkii'}</span></p>
+                <p className="text-2xl font-bold mt-1">${planPrices[selectedPlan]} <span className="text-sm font-normal opacity-80">{selectedPlan === 'monthly' ? '/ bishii' : selectedPlan === 'yearly' ? '/ sannadkii' : '(hal mar)'}</span></p>
               </div>
 
               {/* Payment Type Selection */}
               <div className="space-y-3">
                 <p className="font-bold text-gray-800 text-center">Dooro habka lacag bixinta</p>
+                
+                {/* Stripe Card Payment Option - Dynamic based on selected plan */}
+                <div className="p-4 rounded-xl border-2 border-indigo-500 bg-gradient-to-r from-indigo-50 to-purple-50">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center">
+                      <CreditCard className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-indigo-800">Kaarka (Card Payment)</span>
+                      <p className="text-xs text-indigo-600">
+                        Visa, Mastercard, Amex - ${planPrices[selectedPlan]}
+                        {selectedPlan === 'monthly' ? '/bishii' : selectedPlan === 'yearly' ? '/sannadkii' : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="w-full" data-testid={`stripe-${selectedPlan}-button`}>
+                    <button 
+                      onClick={handleStripeCheckout}
+                      disabled={stripeLoading}
+                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg disabled:opacity-50 text-lg"
+                      data-testid="button-stripe-checkout"
+                    >
+                      {stripeLoading ? "⏳ Waa la furanayaa..." : `💳 Iibso Hadda - $${planPrices[selectedPlan]}`}
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="text-center text-gray-400 text-sm">— ama —</div>
                 
                 {/* Manual Payment Option */}
                 <button
@@ -1198,7 +1305,7 @@ export default function CourseDetail() {
               {/* Course & Price Header */}
               <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-4 rounded-xl text-white">
                 <p className="text-sm opacity-90">{course.title}</p>
-                <p className="text-2xl font-bold mt-1">${planPrices[selectedPlan]} <span className="text-sm font-normal opacity-80">/ {selectedPlan === 'monthly' ? 'bishii' : 'sannadkii'}</span></p>
+                <p className="text-2xl font-bold mt-1">${planPrices[selectedPlan]} <span className="text-sm font-normal opacity-80">{selectedPlan === 'monthly' ? '/ bishii' : selectedPlan === 'yearly' ? '/ sannadkii' : '(hal mar)'}</span></p>
               </div>
 
               {/* Simple 3-Step Instructions */}
